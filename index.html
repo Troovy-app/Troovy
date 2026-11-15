@@ -264,11 +264,12 @@ const CONFIG = {
   CONTACT_EMAIL: "troovy.contact@gmail.com",
   WHATSAPP: "",  /* ex. "33612345678" (indicatif sans + ni 0) ; laisser vide pour masquer */
   /* Informations légales : à remplir avant d'ouvrir les paiements (le paiement reste bloqué tant que NAME, ADDRESS, SIRET, PHONE et MEDIATOR sont vides) */
+  TEST_MODE: true,   /* TEST : débloque le paiement sans SIRET/adresse/médiateur. METTRE false (ou supprimer) avant la vraie ouverture. */
   LEGAL: {
-    NAME: "",        /* Prénom NOM de l'entrepreneur */
+    NAME: "Troovy",        /* Prénom NOM de l'entrepreneur */
     ADDRESS: "",     /* Adresse professionnelle */
     SIRET: "",
-    PHONE: "",
+    PHONE: "07 86 81 34 40",
     TVA: "TVA non applicable, article 293 B du CGI",   /* ou ton numéro de TVA */
     MEDIATOR: "",    /* Nom, adresse et site internet du médiateur de la consommation */
     SHIP_DELAY: "3 jours ouvrés",
@@ -537,7 +538,7 @@ function shippingOf(items,cfg){
   return {subtotal,weight,cents:t.cents,free:false};
 }
 const L = k => { const v=(CONFIG.LEGAL||{})[k]; return v && String(v).trim() ? esc(v) : `<mark>[à compléter : ${k}]</mark>`; };
-const legalReady = () => ["NAME","ADDRESS","SIRET","PHONE","MEDIATOR"].every(k=>((CONFIG.LEGAL||{})[k]||"").trim());
+const legalReady = () => CONFIG.TEST_MODE === true || ["NAME","ADDRESS","SIRET","PHONE","MEDIATOR"].every(k=>((CONFIG.LEGAL||{})[k]||"").trim());
 const pendingKey = "troovy_pending";
 async function cancelPending(){
   let o=null; try{ o=localStorage.getItem(pendingKey); }catch(e){}
@@ -577,7 +578,7 @@ async function renderCart(id){
       ${sh.free?`<p class="hint">Livraison offerte pour cette commande.</p>`:`<div class="bar" aria-hidden="true"><i style="width:${pct}%"></i></div><p class="hint">Plus que ${fmtPrice(left)} pour la livraison offerte.</p>`}
       <div class="ln tot"><span>Total TTC</span><span>${fmtPrice(subtotal+sh.cents)}</span></div>
       ${ready?`<label class="check"><input type="checkbox" id="cgv"> <span>J'ai lu et j'accepte les <a href="#/page/cgv" target="_blank">conditions générales de vente</a> et je connais mon <a href="#/page/retractation" target="_blank">droit de rétractation</a> de 14 jours.</span></label>
-      <button class="btn" id="pay" type="button">Commander avec obligation de paiement</button>
+      ${CONFIG.TEST_MODE?`<p class="hint"><strong>Mode test</strong> : paiement fictif, aucune somme débitée.</p>`:""}<button class="btn" id="pay" type="button">Commander avec obligation de paiement</button>
       <p class="err" role="alert" id="payerr"></p>
       <p class="hint">Paiement par carte, sécurisé par Stripe. Pièces uniques : elles sont réservées pour toi pendant 30 minutes le temps du paiement.</p>`
       :`<p class="hint">La boutique ouvre très bientôt. En attendant, tu peux demander ces articles par e-mail.</p><a class="btn" id="mailcart" href="#">Demander par e-mail</a>`}</div>`;
