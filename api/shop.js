@@ -7,12 +7,13 @@ const crypto = require("crypto");
 const SETTINGS = {
   /* Livraison offerte à partir de ce montant d'articles (en centimes : 6000 = 60 €) */
   FREE_SHIPPING_FROM_CENTS: 6000,
-  /* Tarifs selon le poids du colis. EXEMPLES : remplace-les par les tarifs de ton transporteur. */
+  /* Tarifs Mondial Relay (point relais, 2026) selon le poids du colis. */
   SHIPPING_TIERS: [
-    { max_g: 500, cents: 450 }, /* jusqu'à 500 g : 4,50 € */
-    { max_g: 1000, cents: 590 }, /* jusqu'à 1 kg : 5,90 € */
-    { max_g: 2000, cents: 790 }, /* jusqu'à 2 kg : 7,90 € */
-    { max_g: 5000, cents: 1090 } /* jusqu'à 5 kg : 10,90 € */
+    { max_g: 500, cents: 415 }, /* jusqu'à 500 g : 4,15 € */
+    { max_g: 1000, cents: 599 }, /* jusqu'à 1 kg : 5,99 € */
+    { max_g: 2000, cents: 799 }, /* jusqu'à 2 kg : 7,99 € */
+    { max_g: 4000, cents: 999 }, /* jusqu'à 4 kg : 9,99 € */
+    { max_g: 7000, cents: 1599 } /* jusqu'à 7 kg : 15,99 € */
   ],
   PACKAGING_G: 100, /* poids de l'emballage ajouté à chaque colis */
   COUNTRIES: ["FR"], /* pays de livraison acceptés */
@@ -95,7 +96,7 @@ async function notify(order){
 
 /* ---------- Actions ---------- */
 async function config(){
-  return {enabled: !!(env("STRIPE_SECRET_KEY") && env("SUPABASE_SERVICE_KEY")), free_from_cents:SETTINGS.FREE_SHIPPING_FROM_CENTS,
+  return {enabled: !!(env("STRIPE_SECRET_KEY") && env("SUPABASE_SERVICE_KEY")), test: env("STRIPE_SECRET_KEY").startsWith("sk_test_"), free_from_cents:SETTINGS.FREE_SHIPPING_FROM_CENTS,
     tiers:SETTINGS.SHIPPING_TIERS, packaging_g:SETTINGS.PACKAGING_G, category_weight_g:SETTINGS.CATEGORY_WEIGHT_G, section_factor:SETTINGS.SECTION_FACTOR, countries:SETTINGS.COUNTRIES};
 }
 
@@ -142,7 +143,7 @@ async function checkout(req, res){
       phone_number_collection:{enabled:true},
       billing_address_collection:"auto",
       customer_email: (typeof body.email==="string" && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(body.email)) ? body.email : undefined,
-      custom_text:{submit:{message:"En payant, tu acceptes les conditions générales de vente de Troovy. Tu disposes de 14 jours pour te rétracter."}},
+      custom_text:{submit:{message:"En payant, tu acceptes les conditions générales de vente de Troovy."}},
       line_items: items.map(p=>({quantity:1, price_data:{currency:"eur", unit_amount:p.price_cents,
         product_data:{name:p.title+(p.size?` – ${p.size}`:""), description:p.brand||undefined, images:(p.photos&&/^https:\/\//.test(p.photos[0]||""))?[p.photos[0]]:undefined}}})),
       shipping_options:[{shipping_rate_data:{type:"fixed_amount", display_name: ship.cents? "Frais de port" : "Livraison offerte", fixed_amount:{amount:ship.cents, currency:"eur"}}}]
