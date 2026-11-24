@@ -4,7 +4,7 @@
 /* ============ Réglages modifiables (c'est ici que tu changes tes tarifs) ============ */
 const SETTINGS = {
   /* Livraison offerte à partir de ce montant d'articles (en centimes : 6000 = 60 €) */
-  FREE_SHIPPING_FROM_CENTS: 6000,
+  FREE_SHIPPING_FROM_CENTS: 4000,
   /* Tarifs Mondial Relay (point relais, 2026) selon le poids du colis. */
   SHIPPING_TIERS: [
     { max_g: 500, cents: 415 }, /* jusqu'à 500 g : 4,15 € */
